@@ -2,8 +2,10 @@ import cv2
 from cvzone.HandTrackingModule import HandDetector
 import cvzone
 import math
+import matplotlib.pyplot as plt
+import time
 
-cap = cv2.VideoCapture(0)  # Abre la cámara
+cap = cv2.VideoCapture(1)  # Abre la cámara
 # Inicializar el detector de manos
 detector = HandDetector(staticMode=False,
                         detectionCon=0.7,
@@ -11,6 +13,14 @@ detector = HandDetector(staticMode=False,
                         modelComplexity=1,
                         minTrackCon=0.5)
 
+
+# Variables para el seguimiento del tiempo
+start_time = time.time()
+interval = 3  # Intervalo de 3 segundos
+angle_list = []  # Lista para almacenar los ángulos
+time_list = []  # Lista para almacenar el tiempo
+numberIntervals = 0;
+plt.ylim(0, 180)  # Establece el rango del eje Y
 
 while True:
     success, img = cap.read()  # Lee el cuadro de la cámara
@@ -51,6 +61,23 @@ while True:
         # Muestra el ángulo en la pantalla
         cv2.putText(img, f'{int(angle_deg)}'+' °', (x1,y1 + 30),
                     cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
+        
+        # Si han pasado el intervalo declarado, toma una muestra y agrega a las listas
+        if time.time() - start_time > interval:
+            start_time = time.time()  # Ajusta el inicio del siguiente intervalo
+            numberIntervals += (1 * interval)
+
+            # Agrega el ángulo y el tiempo actual a las listas
+            angle_list.append(angle_deg)
+            time_list.append(numberIntervals)
+
+            # Graficar los datos
+            plt.plot(time_list, angle_list, marker='o')
+            plt.xlabel('Tiempo (s)')
+            plt.ylabel('Ángulo (°)')
+            plt.title('Seguimiento del ángulo a lo largo del tiempo')
+            plt.grid(True)
+            plt.pause(0.1)  # Actualiza la gráfica
 
     # Muestra la imagen en la ventana
     cv2.imshow("Image", img)
